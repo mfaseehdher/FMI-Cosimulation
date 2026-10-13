@@ -1,0 +1,87 @@
+name: Master - Validate Adder Artifacts
+
+"on":
+  workflow_run:
+    workflows: ['MATLAB - Build Adder Artifacts']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: 'Successful MATLAB build run ID from this repository'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Resolve and verify the exact trusted build
+        id: build
+        uses: actions/github-script@v7
+        env:
+          REQUESTED_RUN_ID: ${{ inputs.build_run_id }}
+        with:
+          script: |
+            const value = context.eventName === 'workflow_run'
+              ? String(context.payload.workflow_run.id) : process.env.REQUESTED_RUN_ID;
+            if (!/^\d+$/.test(value || '')) throw new Error('Build run ID must be numeric.');
+            const runId = Number(value);
+            if (!Number.isSafeInteger(runId)) throw new Error('Invalid build run ID.');
+            const {owner, repo} = context.repo;
+            const {data: run} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: runId});
+            const {data: workflow} = await github.rest.actions.getWorkflow({owner, repo, workflow_id: 'matlab-build.yml'});
+            const {data: repository} = await github.rest.repos.get({owner, repo});
+            if (run.workflow_id !== workflow.id || run.event !== 'workflow_dispatch')
+              throw new Error('Only this repository\'s manually triggered MATLAB workflow is accepted.');
+            if (run.head_repository?.full_name !== `${owner}/${repo}` || run.head_branch !== repository.default_branch)
+              throw new Error('Run the MATLAB workflow on the trusted default branch; fork/other-branch artifacts are rejected.');
+            if (run.status !== 'completed' || run.conclusion !== 'success')
+              throw new Error('MATLAB build must have completed successfully.');
+            core.setOutput('run_id', String(runId));
+            core.setOutput('run_attempt', String(run.run_attempt));
+            core.setOutput('revision', run.head_sha);
+            core.setOutput('artifact', `adder-matlab-${runId}-${run.run_attempt}`);
+      - name: Check out the source revision used for that build
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.build.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Download only that build's FMUs and references
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.artifact }}
+          run-id: ${{ steps.build.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: build/downloaded_bundle
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Test comparison and artifact checks
+        run: python -m unittest discover -s tests -v
+      - name: Run the master and compare against MATLAB
+        run: >-
+          python scripts/run_validation.py
+          --artifact-dir build/downloaded_bundle
+          --output-dir results/validation
+          --expected-revision "${{ steps.build.outputs.revision }}"
+          --expected-run-id "${{ steps.build.outputs.run_id }}"
+          --expected-run-attempt "${{ steps.build.outputs.run_attempt }}"
+      - name: Upload validation results, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adder-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/validation/
+          if-no-files-found: warn
+          retention-days: 30

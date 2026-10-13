@@ -1,0 +1,93 @@
+[
+  {
+    "case": "01_two_inputs",
+    "status": "PASS",
+    "values": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  {
+    "case": "02_fan_out",
+    "status": "PASS",
+    "values": [
+      4.0,
+      4.0,
+      4.0
+    ]
+  },
+  {
+    "case": "03_delayed_feedback",
+    "status": "PASS",
+    "values": [
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ]
+  },
+  {
+    "case": "04_same_time_loop",
+    "status": "PASS_EXPECTED_REJECTION",
+    "reason": "Cycle adder contains a time-advancing dependency and requires rollback. Only pure direct-feedthrough loops are currently supported."
+  },
+  {
+    "case": "05_weighted_delayed_feedback",
+    "status": "PASS",
+    "values": [
+      1.0,
+      1.5,
+      1.75,
+      1.875
+    ]
+  },
+  {
+    "case": "06_convergent_same_time_loop",
+    "status": "PASS_EXPECTED_REJECTION",
+    "reason": "Cycle adder contains a time-advancing dependency and requires rollback. Only pure direct-feedthrough loops are currently supported."
+  },
+  {
+    "case": "07_divergent_same_time_loop",
+    "status": "PASS_EXPECTED_REJECTION",
+    "reason": "Cycle adder contains a time-advancing dependency and requires rollback. Only pure direct-feedthrough loops are currently supported."
+  },
+  {
+    "case": "08_two_fmu_chain",
+    "status": "PASS",
+    "values": [
+      9.0,
+      9.0,
+      9.0
+    ]
+  },
+  {
+    "case": "09_branch_and_merge",
+    "status": "PASS",
+    "values": [
+      8.0,
+      8.0,
+      8.0
+    ]
+  },
+  {
+    "case": "10_two_fmu_delayed_loop",
+    "status": "PASS",
+    "values": [
+      3.0,
+      6.0,
+      9.0,
+      12.0
+    ]
+  },
+  {
+    "case": "11_two_fmu_same_time_loop",
+    "status": "PASS_EXPECTED_REJECTION",
+    "reason": "Cycle a, b contains a time-advancing dependency and requires rollback. Only pure direct-feedthrough loops are currently supported."
+  },
+  {
+    "case": "12_incompatible_step",
+    "status": "PASS_EXPECTED_REJECTION",
+    "reason": "[FMU 'adder'] dt=0.1 is NOT a multiple of declared stepSize=0.2.\n  Fix: change 'dt' in your JSON to a multiple of 0.2.\n  E.g. dt=0.2 or dt=2.0 etc."
+  }
+]

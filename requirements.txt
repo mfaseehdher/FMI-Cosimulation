@@ -1,0 +1,4 @@
+fmpy==0.3.26
+networkx==3.6.1
+matplotlib==3.10.8
+numpy==2.3.5

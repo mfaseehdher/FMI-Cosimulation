@@ -1,0 +1,15 @@
+build/
+results/
+experiments/*/fmus/
+experiments/*/reference/
+**/slprj/
+*.slxc
+__pycache__/
+*.pyc
+.venv/
+*.asv
+*.slx.autosave
+*.mdl.autosave
+.env
+.env.*
+!.env.example

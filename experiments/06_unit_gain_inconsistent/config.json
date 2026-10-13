@@ -1,0 +1,82 @@
+{
+  "start": 0,
+  "stop": 0.5,
+  "dt": 0.1,
+  "algebraic_loop": {
+    "absolute_tolerance": 1e-11,
+    "relative_tolerance": 1e-10,
+    "max_iterations": 20
+  },
+  "components": {
+    "source": {
+      "type": "const",
+      "values": {
+        "r": 1,
+        "zero": 0,
+        "two": 2
+      }
+    },
+    "a": {
+      "type": "fmu",
+      "file": "fmus/adder_06_a.fmu",
+      "parameters": {
+        "Gain": 1
+      }
+    },
+    "b": {
+      "type": "fmu",
+      "file": "fmus/adder_06_b.fmu",
+      "parameters": {
+        "Gain": 1
+      }
+    },
+    "log": {
+      "type": "logger",
+      "file": "results/actual.csv"
+    }
+  },
+  "connections": [
+    {
+      "src_comp": "source",
+      "src_port": "r",
+      "dst_comp": "a",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "zero",
+      "dst_comp": "b",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "b",
+      "src_port": "Out",
+      "dst_comp": "a",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "a",
+      "src_port": "Out",
+      "dst_comp": "b",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "a",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "a"
+    },
+    {
+      "src_comp": "b",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "b"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "r",
+      "dst_comp": "log",
+      "dst_port": "r"
+    }
+  ]
+}

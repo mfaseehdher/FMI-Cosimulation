@@ -1,0 +1,68 @@
+name: MATLAB - Build Adder Artifacts
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adder-matlab-build
+  cancel-in-progress: false
+
+jobs:
+  matlab:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: powershell
+    env:
+      MATLAB_ROOT: ${{ vars.MATLAB_ROOT }}
+      MW_MINGW64_LOC: ${{ vars.MINGW64_ROOT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run saved SLX models and export FMUs headlessly
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          $root = $env:MATLAB_ROOT
+          if (-not $root) { $root = 'C:\Program Files\MATLAB\R2026b' }
+          $matlab = Join-Path $root 'bin\matlab.exe'
+          if (-not (Test-Path -LiteralPath $matlab)) { throw 'Set repository variable MATLAB_ROOT to your MATLAB installation.' }
+          if ($env:MW_MINGW64_LOC -and -not (Test-Path -LiteralPath (Join-Path $env:MW_MINGW64_LOC 'bin\gcc.exe'))) {
+            throw 'MINGW64_ROOT does not contain bin\gcc.exe.'
+          }
+          & $matlab -wait -logfile 'build\matlab_build.log' -batch "if ~isempty(getenv('MW_MINGW64_LOC')), mex('-setup','C'); end; addpath(fullfile(pwd,'matlab')); build_all;"
+          if ($LASTEXITCODE -ne 0) { throw "MATLAB build failed with exit code $LASTEXITCODE." }
+      - name: Package completed FMUs and MATLAB references
+        run: python scripts/package_matlab.py --output-dir build/matlab_bundle
+      - name: Upload build package for pipeline 2
+        id: package
+        uses: actions/upload-artifact@v4
+        with:
+          name: adder-matlab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/matlab_bundle/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish build evidence link
+        env:
+          ARTIFACT_URL: ${{ steps.package.outputs.artifact-url }}
+        run: |
+          "## MATLAB Build`n`n[Download FMUs and references]($env:ARTIFACT_URL)`n`nSource revision: $env:GITHUB_SHA" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+      - name: Keep MATLAB diagnostics even if the build fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adder-matlab-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/matlab_build.log
+            build/matlab_environment.json
+            experiments/*/reference/reference_status.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,132 @@
+{
+  "start": 0,
+  "stop": 0.5,
+  "dt": 0.1,
+  "algebraic_loop": {
+    "absolute_tolerance": 1e-11,
+    "relative_tolerance": 1e-10,
+    "max_iterations": 100
+  },
+  "components": {
+    "source": {
+      "type": "const",
+      "values": {
+        "r": 1,
+        "zero": 0,
+        "two": 2
+      }
+    },
+    "a": {
+      "type": "fmu",
+      "file": "fmus/adder_04_a.fmu",
+      "parameters": {
+        "Gain": 0.5
+      }
+    },
+    "b": {
+      "type": "fmu",
+      "file": "fmus/adder_04_b.fmu",
+      "parameters": {
+        "Gain": 0.2
+      }
+    },
+    "log": {
+      "type": "logger",
+      "file": "results/actual.csv"
+    },
+    "c": {
+      "type": "fmu",
+      "file": "fmus/adder_04_c.fmu",
+      "parameters": {
+        "Gain": 1
+      }
+    },
+    "d": {
+      "type": "fmu",
+      "file": "fmus/adder_04_d.fmu",
+      "parameters": {
+        "Gain": 1
+      }
+    }
+  },
+  "connections": [
+    {
+      "src_comp": "c",
+      "src_port": "Out",
+      "dst_comp": "a",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "zero",
+      "dst_comp": "b",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "b",
+      "src_port": "Out",
+      "dst_comp": "a",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "a",
+      "src_port": "Out",
+      "dst_comp": "b",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "a",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "a"
+    },
+    {
+      "src_comp": "b",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "b"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "r",
+      "dst_comp": "log",
+      "dst_port": "r"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "r",
+      "dst_comp": "c",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "source",
+      "src_port": "two",
+      "dst_comp": "c",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "a",
+      "src_port": "Out",
+      "dst_comp": "d",
+      "dst_port": "Bias"
+    },
+    {
+      "src_comp": "b",
+      "src_port": "Out",
+      "dst_comp": "d",
+      "dst_port": "Feedback"
+    },
+    {
+      "src_comp": "c",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "upstream"
+    },
+    {
+      "src_comp": "d",
+      "src_port": "Out",
+      "dst_comp": "log",
+      "dst_port": "merged"
+    }
+  ]
+}

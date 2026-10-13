@@ -1,0 +1,13 @@
+{
+  "id": "03_negative_feedback",
+  "title": "Negative gain in a convergent loop",
+  "master_expectation": "success",
+  "matlab_expectation": "success",
+  "internal_step": 0.01,
+  "comparison": {
+    "absolute_tolerance": 1e-8,
+    "rmse_tolerance": 1e-8
+  },
+  "reference_alignment": "stateless_interval_hold",
+  "scope": "Stateless, Real-valued weighted adders only."
+}

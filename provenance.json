@@ -1,0 +1,9 @@
+{
+  "copied_on": "2026-10-12",
+  "master_source": "D:\\thesis\\ci-fmi\\src\\ci_fmi\\master_algorithm.py",
+  "master_sha256": "e7b7d7121f91ac574b1fad0a36be04a54abc20e928480afecb585a661e3baec8",
+  "source_state": "Locally developed, uncommitted master snapshot; not a recovered historical version.",
+  "experiment_source": "docs/experiments/matlab_algebraic_adder_loops in the local ci-fmi workspace",
+  "changes": "Standalone per-case layout, headless MATLAB reference generation, build-artifact handoff and Python comparison. The master snapshot is unchanged.",
+  "ai_assistance": "OpenAI Codex helped prepare the scripts, workflows, models and tests. The student must review and understand them. Nothing was published by Codex."
+}
