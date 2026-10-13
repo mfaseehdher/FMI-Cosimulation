@@ -24,9 +24,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+      - name: Check Python installed on the MATLAB runner
+        run: |
+          py -3.13 -c "import sys; assert sys.version_info[:2] == (3, 13); print(sys.executable)"
+          if ($LASTEXITCODE -ne 0) { throw 'Install Python 3.13 for the runner account.' }
       - name: Run saved SLX models and export FMUs headlessly
         run: |
           $ErrorActionPreference = 'Stop'
@@ -41,7 +42,9 @@ jobs:
           & $matlab -wait -logfile 'build\matlab_build.log' -batch "if ~isempty(getenv('MW_MINGW64_LOC')), mex('-setup','C'); end; addpath(fullfile(pwd,'matlab')); build_all;"
           if ($LASTEXITCODE -ne 0) { throw "MATLAB build failed with exit code $LASTEXITCODE." }
       - name: Package completed FMUs and MATLAB references
-        run: python scripts/package_matlab.py --output-dir build/matlab_bundle
+        run: |
+          py -3.13 scripts/package_matlab.py --output-dir build/matlab_bundle
+          if ($LASTEXITCODE -ne 0) { throw "Packaging failed with exit code $LASTEXITCODE." }
       - name: Upload build package for pipeline 2
         id: package
         uses: actions/upload-artifact@v4
